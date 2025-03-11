@@ -42,6 +42,7 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole() != null ? Role.valueOf(request.getRole()) : Role.USER)
+
                 .verificationToken(verificationToken)
                 .isVerified(false) // Default to false
                 .build();

@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+
 public class SecurityConfig {
     private final JWTAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
@@ -35,6 +36,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/courses/**").permitAll()
                         .requestMatchers("/api/departments/**").permitAll()
                         .requestMatchers("/api/students/**").permitAll()
+                        .requestMatchers("/api/complaints/**").permitAll()
+                        .requestMatchers("/api/teachers/**").permitAll()
+                        .requestMatchers("/api/teachers/auth/**").permitAll()
+                        .requestMatchers("/api/fee-categories/**").permitAll()
+                        .requestMatchers("/api/fees/**").permitAll()
+                        .requestMatchers("/api/assignments/**").permitAll()
+                        .requestMatchers("/api/submissions/**").permitAll()
+                        .requestMatchers("/api/calendar/**").permitAll()
+                        .requestMatchers("/api/notifications/**").permitAll()
+                        .requestMatchers("/api/timetables/**").permitAll()
+                        .requestMatchers("/api/dashboard/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

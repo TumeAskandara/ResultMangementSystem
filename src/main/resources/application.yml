@@ -20,3 +20,31 @@ spring:
           auth: true
           starttls:
             enable: true
+            debug: true
+
+app:
+  base-url: http://localhost:15002
+  admin:
+    email: tume50193@gmail.com
+    name: System Administrator
+    notifications:
+      enabled: true
+
+
+momo:
+  api:
+    url: https://sandbox.momodeveloper.mtn.com
+    key: "SDSAFAD3"
+  subscription:
+    key: "fba6f18ef89e4e3a9646333890be51a6"
+  user:
+    id: "TumeAskandara"
+
+orange:
+  api:
+    url: https://api.orange.com
+  client:
+    id: "4RAFDFEed4"
+    secret: "fadsk4r"
+  merchant:
+    account: "dgksdf"

@@ -2,6 +2,7 @@ package com.example.resultmanagementsystem.services;
 
 import com.example.resultmanagementsystem.Dto.Repository.CourseRepository;
 import com.example.resultmanagementsystem.model.Course;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -9,9 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CourseService {
-    @Autowired
-    private CourseRepository courseRepository;
+
+    private final CourseRepository courseRepository;
 
     // Get all courses
     public List<Course> getAllCourses() {
@@ -22,6 +24,11 @@ public class CourseService {
     public Optional<Course> getCourseById(String id) {
         return courseRepository.findById(id);
     }
+
+    public List<Course> getCoursesByDepartmentId(String departmentId){
+        return courseRepository.findCourseByDepartmentId(departmentId);
+    }
+
 
     // Create a new course
     public Course createCourse(Course course) {
@@ -50,3 +57,5 @@ public class CourseService {
         return false;
     }
 }
+
+

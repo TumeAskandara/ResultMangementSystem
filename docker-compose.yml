@@ -1,0 +1,41 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: resultmgmt-mongo-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: school_management_system
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+  app:
+    build: .
+    container_name: schoolmanagmentsystem-app-dev
+    restart: unless-stopped
+    ports:
+      - "15002:15002"
+    depends_on:
+      - mongodb
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATA_MONGODB_HOST=mongodb
+      - SPRING_DATA_MONGODB_PORT=27017
+      - SPRING_DATA_MONGODB_DATABASE=school_management_system
+      - SPRING_DATA_MONGODB_USERNAME=admin
+      - SPRING_DATA_MONGODB_PASSWORD=password123
+      - SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE=admin
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  app-network:
+    driver: bridge

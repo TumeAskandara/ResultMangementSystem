@@ -1,78 +1,59 @@
 package com.example.resultmanagementsystem.services;
 
+import com.example.resultmanagementsystem.Dto.Repository.CourseRepository;
 import com.example.resultmanagementsystem.Dto.Repository.ResultRepository;
+import com.example.resultmanagementsystem.Dto.Repository.StudentRepository;
 import com.example.resultmanagementsystem.Dto.ResultDTO;
+import com.example.resultmanagementsystem.model.Course;
 import com.example.resultmanagementsystem.model.Result;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.resultmanagementsystem.model.Student;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+@RequiredArgsConstructor
 @Service
 public class ResultService {
 
     private final ResultRepository resultRepository;
-
-    @Autowired
-    public ResultService(ResultRepository resultRepository) {
-        this.resultRepository = resultRepository;
-    }
+    private final CourseRepository courseRepository;
+    private final StudentRepository studentRepository;
 
     public Result createResult(ResultDTO resultDTO) {
-        // Extract values from DTO
         String studentId = resultDTO.getStudentId();
         String courseId = resultDTO.getCourseId();
+        String semester = resultDTO.getSemester();
         Double ca = resultDTO.getCa();
         Double exams = resultDTO.getExams();
         Double credits = resultDTO.getCredit();
 
-        // Validate input scores
-        if (ca < 0 || ca > 30) {
-            throw new IllegalArgumentException("CA score must be between 0 and 30");
-        }
+        // Validate input values
+        if (ca < 0 || ca > 30) throw new IllegalArgumentException("CA must be between 0 and 30");
+        if (exams < 0 || exams > 70) throw new IllegalArgumentException("Exam must be between 0 and 70");
+        if (credits <= 0) throw new IllegalArgumentException("Credits must be a positive number");
 
-        if (exams < 0 || exams > 70) {
-            throw new IllegalArgumentException("Exam score must be between 0 and 70");
-        }
-
-        if (credits <= 0) {
-            throw new IllegalArgumentException("Credits must be a positive number");
-        }
-
-        // Create new result object
+        // Create and populate Result object
         Result result = new Result();
         result.setStudentId(studentId);
         result.setCourseId(courseId);
+        result.setSemester(semester);
         result.setCa(ca);
         result.setExams(exams);
         result.setCredits(credits);
 
-        // Calculate total
+        // Compute total, grade, GPA, and status
         double total = ca + exams;
         result.setTotal(total);
-
-        // Calculate grade, evaluation, and weight
         calculateGradeAndGPA(result, total);
-
-        // Set status
         result.setStatus(total >= 50 ? "PASS" : "FAIL");
-
-        // Set jury decision (default to normal decision based on scores)
         result.setJuryDecision(total >= 50 ? "VALIDATED" : "FAIL");
 
-        // Save and return the result
         return resultRepository.save(result);
     }
 
-    /**
-     * Helper method to calculate grade, evaluation, weight, and GPA
-     */
     private void calculateGradeAndGPA(Result result, double total) {
-        String grade;
-        String evaluation;
+        String grade, evaluation;
         double weight;
 
         if (total >= 90) {
@@ -116,99 +97,120 @@ public class ResultService {
         result.setGrade(grade);
         result.setEvaluation(evaluation);
         result.setWeight(weight);
+        result.setGpa((int) weight);  // GPA should not be null, set it here.
     }
 
-    /**
-     * Retrieves all results for a specific student, and also calculates the cumulative GPA.
-     */
-    public Map<String, Object> getResultsByStudentId(String studentId) {
-        List<Result> results = resultRepository.findByStudentId(studentId);
+    public List<Result> getAllResultByDepartmentId(String id) {
+        return resultRepository.findByStudentId(id);
+    }
 
-        // Remove gpa field from results before returning them
-        for (Result result : results) {
-            result.setGpa(null); // Set gpa to null, or don't include it in the response
+    // Service
+    public Map<String, Object> getResultsByStudentEmailAndSemester(String email, String semester, String year) {
+        Optional<Student> studentOpt = studentRepository.findByEmail(email);
+        if (studentOpt.isEmpty()) {
+            throw new RuntimeException("Student with email " + email + " not found");
         }
 
-        // Calculate cumulative GPA for the student
-        double cumulativeGPA = calculateCumulativeGPA(studentId);
+        String studentId = studentOpt.get().getStudentId();
+        List<Result> results = resultRepository.findByStudentIdAndSemesterAndYear(studentId, semester, year);
 
-        // Prepare the response to include both results and cumulative GPA
+        if (results.isEmpty()) {
+            throw new RuntimeException("No results found for student with email " + email + " in semester " + semester);
+        }
+
+        return formatResults(results);
+    }
+
+    public Map<String, Object> getResultsByStudentEmail(String email) {
+        Optional<Student> studentOpt = studentRepository.findByEmail(email);
+        if (studentOpt.isEmpty()) {
+            throw new RuntimeException("Student with email " + email + " not found");
+        }
+
+        return getResultsByStudentId(studentOpt.get().getStudentId());
+    }
+
+    public List<Result> getResultsBySemester(String studentId, String semester, String year) {
+        return resultRepository.findByStudentIdAndSemesterAndYear(studentId, semester, year);
+    }
+
+    public Map<String, Object> getResultsByStudentId(String studentId) {
+        List<Result> results = resultRepository.findByStudentId(studentId);
+        return formatResults(results);
+    }
+
+    private Map<String, Object> formatResults(List<Result> results) {
+        List<Map<String, Object>> formattedResults = new ArrayList<>();
+
+        for (Result result : results) {
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("status", result.getStatus());
+            resultMap.put("exams", result.getExams());
+            resultMap.put("ca", result.getCa());
+            resultMap.put("total", result.getTotal());
+            resultMap.put("grade", result.getGrade());
+            resultMap.put("evaluation", result.getEvaluation());
+            resultMap.put("weight", result.getWeight());
+            resultMap.put("juryDecision", result.getJuryDecision());
+            resultMap.put("gpa", result.getGpa());  // Ensure GPA is included
+
+            courseRepository.findById(result.getCourseId()).ifPresentOrElse(course -> {
+                resultMap.put("courseTitle", course.getCourseTitle());
+                resultMap.put("courseMaster", course.getCourseMaster());
+                resultMap.put("credits", course.getCredits());
+                resultMap.put("code", course.getCode());
+            }, () -> {
+                resultMap.put("courseTitle", "Unknown");
+                resultMap.put("courseMaster", "Unknown");
+            });
+
+            formattedResults.add(resultMap);
+        }
+
+        double cumulativeGPA = calculateGPABySemester(results.get(0).getStudentId(), null, null);
+
         Map<String, Object> response = new HashMap<>();
-        response.put("results", results);
+        response.put("results", formattedResults);
         response.put("cumulativeGPA", cumulativeGPA);
 
         return response;
     }
 
+    public double calculateGPABySemester(String studentId, String semester, String year) {
+        List<Result> results = (semester == null) ?
+                resultRepository.findByStudentId(studentId) :
+                resultRepository.findByStudentIdAndSemesterAndYear(studentId, semester, year);
 
-    /**
-     * Calculates the cumulative GPA for a student
-     */
-    public double calculateCumulativeGPA(String studentId) {
-        List<Result> studentResults = resultRepository.findByStudentId(studentId);
+        if (results.isEmpty()) return 0.0;
 
-        if (studentResults.isEmpty()) {
-            return 0.0;
-        }
+        double totalWeightedPoints = results.stream().mapToDouble(r -> r.getWeight() * r.getCredits()).sum();
+        double totalCredits = results.stream().mapToDouble(Result::getCredits).sum();
 
-        double totalWeightedPoints = 0.0;
-        double totalCredits = 0.0;
-
-        for (Result result : studentResults) {
-            double creditValue = result.getCredits();
-            totalWeightedPoints += result.getWeight() * creditValue;
-            totalCredits += creditValue;
-        }
-
-        if (totalCredits == 0) {
-            return 0.0;
-        }
-
-        return totalWeightedPoints / totalCredits;
+        return totalCredits == 0 ? 0.0 : totalWeightedPoints / totalCredits;
     }
 
-    /**
-     * Retrieves a result by its ID
-     */
     public Result getResultById(String id) {
         return resultRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Result not found with id: " + id));
     }
 
-    /**
-     * Retrieves all results for a specific course
-     */
     public List<Result> getResultsByCourseId(String courseId) {
         return resultRepository.findByCourseId(courseId);
     }
 
-    /**
-     * Updates an existing result
-     */
     public Result updateResult(String id, double ca, double exams) {
         Result existingResult = getResultById(id);
 
-        // Update scores
         existingResult.setCa(ca);
         existingResult.setExams(exams);
-
-        // Recalculate total
         double total = ca + exams;
         existingResult.setTotal(total);
-
-        // Recalculate grade, evaluation, weight
         calculateGradeAndGPA(existingResult, total);
-
-        // Update status
         existingResult.setStatus(total >= 50 ? "PASS" : "FAIL");
 
-        // Save and return the updated result
         return resultRepository.save(existingResult);
     }
 
-    /**
-     * Deletes a result by its ID
-     */
     public void deleteResult(String id) {
         resultRepository.deleteById(id);
     }

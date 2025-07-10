@@ -25,7 +25,7 @@ import java.util.UUID;
 public class User implements UserDetails {
 
     @Id
-    private String id;
+    private String id = UUID.randomUUID().toString();
     private String firstname;
     private String lastname;
     private String email;
@@ -78,3 +78,4 @@ public class User implements UserDetails {
     }
 
 }
+

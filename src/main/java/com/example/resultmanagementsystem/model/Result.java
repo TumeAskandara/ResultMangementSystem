@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Year;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,7 +19,9 @@ public class Result {
     private String id;
     private String studentId;
     private String courseId;
+    private String year = Year.now().toString();
     private String status;
+    private String semester;
     private double exams;
     private double ca;
     private double total;
@@ -25,14 +30,16 @@ public class Result {
     private double weight;
     private double credits;
     private String juryDecision;
-    private Integer gpa;
+    private double gpa;
+    private double marks;
+    private String courseMaster;
 
-    public double getExams() {
-        return exams;
+
+    public void setGpa(double gpa) {
+        this.gpa = BigDecimal.valueOf(gpa)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
     }
 
-    public void setExams(double exams) {
-        this.exams = exams;
-    }
 
 }

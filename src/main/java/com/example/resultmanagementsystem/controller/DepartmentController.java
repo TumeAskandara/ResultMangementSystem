@@ -5,6 +5,7 @@ import com.example.resultmanagementsystem.model.Department;
 import com.example.resultmanagementsystem.services.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,10 +19,12 @@ public class DepartmentController {
     private final DepartmentService departmentService;
 
     @PostMapping("/create")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Department> createDepartment(@RequestBody Department department) {
         Department createdDepartment = departmentService.createDepartment(department);
         return ResponseEntity.ok(createdDepartment);
     }
+
 
     @GetMapping("/all")
     public ResponseEntity<List<Department>> getAllDepartments() {

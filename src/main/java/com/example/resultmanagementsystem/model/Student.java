@@ -16,11 +16,14 @@ import java.util.UUID;
 @Document(collection  = "students")
 public class Student {
     @Id
-    @JsonIgnore
     private String studentId = UUID.randomUUID().toString();
     private String name;
     private String departmentId;
     private String email;
+    @JsonIgnore
+    private String registrationNumber = UUID.randomUUID().toString();
+    private String password;
+
 
 }
 

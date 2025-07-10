@@ -8,32 +8,56 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Service
 public class StudentService {
-
     private final StudentRepository studentRepository;
-
     private final ResultRepository resultRepository;
-
     private final CourseRepository courseRepository;
 
+    public Student createStudent(Student student) {
+        Optional<Student> existingStudentByEmail = studentRepository.findByEmail(student.getEmail());
 
-    public Student createStudent(Student student, String email, String name, String departmentId) {
-        Student existingStudentByEmail = studentRepository.findByEmail(email);
-        Student existingStudentByName = studentRepository.findByName(name);
+        if (existingStudentByEmail.isPresent()) {
+            throw new RuntimeException("Student with email already exists.");
+        }
 
-        if (existingStudentByEmail != null || existingStudentByName != null) {
-            throw new RuntimeException("Student with email or name already exists.");
+        // Check if name exists
+        Student existingStudentByName = studentRepository.findByName(student.getName());
+        if (existingStudentByName != null) {
+            throw new RuntimeException("Student with name already exists.");
+        }
+
+        // Ensure student has departmentId set
+        if (student.getDepartmentId() == null || student.getDepartmentId().isEmpty()) {
+            throw new RuntimeException("Department ID is required.");
         }
 
         return studentRepository.save(student);
     }
 
 
-
     public Student getStudentById(String studentId) {
-        return studentRepository.findByStudentId(studentId);
+        Student student = studentRepository.findByStudentId(studentId);
+        if (student == null) {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+
+        // Call getStudentByEmail using the email from the found student
+        try {
+            // This will validate if the email exists in the database
+            getStudentIdByEmail(student.getEmail());
+        } catch (RuntimeException e) {
+            // If there's an inconsistency, you might want to log it
+            System.out.println("Warning: Student found by ID but not by email: " + student.getEmail());
+        }
+
+        return student;
+    }
+    public List<Student> getStudentByDepartmentId(String departmentId){
+        return studentRepository.findByDepartmentId(departmentId);
     }
 
     public List<Student> getAllStudents() {
@@ -48,4 +72,36 @@ public class StudentService {
         studentRepository.delete(student);
     }
 
+    // Added methods to support EmailService
+    public String getStudentNameById(String studentId) {
+        Student student = getStudentById(studentId);
+        if (student == null) {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+        return student.getName();
+    }
+
+    public String getStudentEmailById(String studentId) {
+        Student student = getStudentById(studentId);
+        if (student == null) {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+        return student.getEmail();
+    }
+    public Student getStudentIdByEmail(String email){
+        Optional<Student> student = studentRepository.findByEmail(email);
+        if(student.isEmpty()){
+            throw new RuntimeException("Student not found with email: "+ email);
+        }
+
+        return student.get();
+    }
+
+    public Student getStudentDepartmentByStudentId(String studentId) {
+        Student student = studentRepository.findByStudentId(studentId);
+        if (student == null) {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+        return student;
+    }
 }

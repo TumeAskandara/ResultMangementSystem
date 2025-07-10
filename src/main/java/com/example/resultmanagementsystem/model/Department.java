@@ -15,7 +15,7 @@ import java.util.UUID;
 @Document(collection = "departments")
 public class Department {
     @Id
-    @JsonIgnore
+
     private String departmentId = UUID.randomUUID().toString();
     private String departmentName;
 

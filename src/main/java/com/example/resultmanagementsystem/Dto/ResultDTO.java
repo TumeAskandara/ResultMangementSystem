@@ -13,4 +13,5 @@ public class ResultDTO {
     private Double ca;
     private Double exams;
     private Double credit;
+    private String semester;
 }

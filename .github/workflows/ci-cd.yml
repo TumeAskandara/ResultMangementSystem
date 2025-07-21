@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pull-requests: write
+  packages: write
+
 env:
   DOCKER_REGISTRY: docker.io/askan923
   IMAGE_NAME: school-management-system

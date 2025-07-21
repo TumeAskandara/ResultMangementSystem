@@ -34,7 +34,7 @@ public class ResultController {
 
     @GetMapping("/student/email")
     @Operation(
-            summary = "Get student results by email and semester",
+            summary = "Get student results by email and semester and year",
             description = "Retrieves all academic results for a specific student based on their email address, semester, and academic year. Returns comprehensive result data including grades, credits, and calculated totals."
     )
     @ApiResponses(value = {

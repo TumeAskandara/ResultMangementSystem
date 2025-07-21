@@ -3,6 +3,7 @@ package com.example.resultmanagementsystem.model.Role;
 public enum Role {
     STUDENT,
     TEACHER,
-    ADMIN
+    ADMIN,
+    INSTRUCTOR,
+    COORDINATOR
 }
-

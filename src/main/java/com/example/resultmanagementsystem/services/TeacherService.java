@@ -26,6 +26,11 @@ public class TeacherService {
         return teacherRepository.save(teacher);
     }
 
+    public Teacher getTeacherByEmail(String email) {
+        return teacherRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Teacher not found with email: " + email));
+    }
+
     public Teacher getTeacherById(String id) {
         return teacherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));

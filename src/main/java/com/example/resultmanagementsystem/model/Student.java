@@ -22,8 +22,8 @@ public class Student {
     private String email;
     @JsonIgnore
     private String registrationNumber = UUID.randomUUID().toString();
-    private String password;
-
+    private String academicYear;
+//    private String password;
 
 }
 

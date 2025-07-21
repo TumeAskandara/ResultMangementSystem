@@ -1,7 +1,7 @@
 package com.example.resultmanagementsystem.Dto;
 
-public enum ERole {
-    USER,
-    MODERATOR,
+public enum Role {
+    STUDENT,
+    TEACHER,
     ADMIN
 }

@@ -30,19 +30,45 @@ public class TeacherController {
 
     private final TeacherService teacherService;
 
-    @PostMapping
+
+
+    @GetMapping("/getTeacherByemail/{email}")
     @Operation(
-            summary = "Create New Teacher",
-            description = "Creates a new teacher profile in the system. This endpoint is typically used by administrators to add new teaching staff."
+            summary = "Get Teacher by Email",
+            description = "Retrieves a teacher's profile using their email address. This is useful for fetching teacher details for various operations."
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Teacher created successfully",
-                    content = @Content(schema = @Schema(implementation = ResponseDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid teacher data or validation errors",
-                    content = @Content(schema = @Schema(implementation = ResponseDTO.class))),
-            @ApiResponse(responseCode = "409", description = "Teacher with this email already exists",
-                    content = @Content(schema = @Schema(implementation = ResponseDTO.class)))
-    })
+
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Teacher found",
+            content = @Content(schema = @Schema(implementation = TeacherDTO.class))), @ApiResponse(responseCode = "404", description = "Teacher not found",
+            content = @Content(schema = @Schema(implementation = ResponseDTO.class))), @ApiResponse(responseCode = "201", description = "Teacher created successfully",
+            content = @Content(schema = @Schema(implementation = ResponseDTO.class))), @ApiResponse(responseCode = "400", description = "Invalid teacher data or validation errors",
+            content = @Content(schema = @Schema(implementation = ResponseDTO.class))), @ApiResponse(responseCode = "409", description = "Teacher with this email already exists",
+            content = @Content(schema = @Schema(implementation = ResponseDTO.class)))})
+    public ResponseEntity<ResponseDTO> getTeacherByEmail(
+            @Parameter(description = "Email of the teacher to retrieve", required = true)
+            @PathVariable String email) {
+
+        Teacher teacher = teacherService.getTeacherByEmail(email);
+
+        ResponseDTO response = ResponseDTO.builder()
+                .meta(MetaDTO.builder()
+                        .statusCode(HttpStatus.OK.value())
+                        .statusDescription("OK")
+                        .message("Teacher found successfully")
+                        .build())
+                .data(teacher)
+                .correlationId(UUID.randomUUID().toString())
+                .transactionId(UUID.randomUUID().toString())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/createTeacher")
+    @Operation(
+            summary = "Create Teacher",
+            description = "Creates a new teacher profile in the system. This endpoint is typically used by administrators to add new teachers."
+    )
+
     public ResponseEntity<ResponseDTO> createTeacher(
             @Parameter(description = "Teacher information including name, email, department, and other details", required = true)
             @Valid @RequestBody Teacher teacher) {

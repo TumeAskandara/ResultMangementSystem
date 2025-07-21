@@ -1,8 +1,6 @@
 package com.example.resultmanagementsystem.controller;
 
-import com.example.resultmanagementsystem.Dto.userdto.AuthenticationRequest;
-import com.example.resultmanagementsystem.Dto.userdto.AuthenticationResponse;
-import com.example.resultmanagementsystem.Dto.userdto.RegisterRequest;
+import com.example.resultmanagementsystem.Dto.userdto.*;
 import com.example.resultmanagementsystem.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,17 +23,22 @@ public class AuthenticationController {
             AuthenticationResponse response = authenticationService.register(request);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
-    @GetMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
+    @PostMapping("/verify-registration-otp")
+    public ResponseEntity<?> verifyRegistrationOTP(@RequestBody OTPVerificationRequest request) {
         try {
-            String message = authenticationService.verifyEmail(token);
-            return ResponseEntity.ok(Map.of("message", message));
+            OTPVerificationResponse response = authenticationService.verifyRegistrationOTP(request);
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -45,7 +48,42 @@ public class AuthenticationController {
             AuthenticationResponse response = authenticationService.authenticate(request);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @PostMapping("/verify-login-otp")
+    public ResponseEntity<?> verifyLoginOTP(@RequestBody OTPVerificationRequest request) {
+        try {
+            OTPVerificationResponse response = authenticationService.verifyLoginOTP(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOTP(
+            @RequestParam String email,
+            @RequestParam String type) {
+        try {
+            AuthenticationResponse response = authenticationService.resendOTP(email, type);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // Legacy endpoint - kept for backward compatibility
+    @GetMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "This endpoint is deprecated. Please use OTP verification instead."));
     }
 }

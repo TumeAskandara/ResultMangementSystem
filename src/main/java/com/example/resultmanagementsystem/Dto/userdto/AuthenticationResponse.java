@@ -19,5 +19,7 @@ public class AuthenticationResponse {
     private String firstName;
     private Set<String> departmentId;
     private String studentId;
+    private boolean requiresOtp;
+
 
 }

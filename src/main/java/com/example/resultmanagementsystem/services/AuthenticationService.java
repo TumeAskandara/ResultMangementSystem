@@ -1,341 +1,22 @@
-//package com.example.resultmanagementsystem.services;
-//
-//import com.example.resultmanagementsystem.Dto.Repository.TeacherRepository;
-//import com.example.resultmanagementsystem.Dto.Repository.UserRepository;
-//import com.example.resultmanagementsystem.Dto.userdto.AuthenticationRequest;
-//import com.example.resultmanagementsystem.Dto.userdto.AuthenticationResponse;
-//import com.example.resultmanagementsystem.Dto.userdto.RegisterRequest;
-//import com.example.resultmanagementsystem.config.JWTService;
-//import com.example.resultmanagementsystem.model.Role.Role;
-//import com.example.resultmanagementsystem.model.Teacher;
-//import com.example.resultmanagementsystem.model.User;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.security.authentication.AuthenticationManager;
-//import org.springframework.security.core.userdetails.UserDetails;
-//import org.springframework.security.core.userdetails.UsernameNotFoundException;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.Optional;
-//import java.util.Set;
-//import java.util.UUID;
-//
-//@Service
-//@RequiredArgsConstructor
-//public class AuthenticationService {
-//
-//    private final UserRepository userRepository;
-//    private final PasswordEncoder passwordEncoder;
-//    private final JWTService jwtService;
-//    private final EmailService emailService;
-//    private final AuthenticationManager authenticationManager;
-//    private final TeacherRepository teacherRepository;
-//
-//    public AuthenticationResponse register(RegisterRequest request) {
-//        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-//        if (existingUser.isPresent()) {
-//            throw new IllegalArgumentException("Email already exists: " + request.getEmail());
-//        }
-//
-//        // Generate a verification token
-//        String verificationToken = UUID.randomUUID().toString();
-//
-//        // Create a new user with verification token
-//        User user = User.builder()
-//                .firstname(request.getFirstname())
-//                .lastname(request.getLastname())
-//                .email(request.getEmail())
-//                .password(passwordEncoder.encode(request.getPassword()))
-//                .role(request.getRole() != null ? Role.valueOf(request.getRole()) : Role.STUDENT)
-//
-//                .verificationToken(verificationToken)
-//                .isVerified(false) // Default to false
-//                .build();
-//
-//        // Save the user
-//        userRepository.save(user);
-//
-//        // Send verification email
-//        emailService.sendVerificationEmail(user.getEmail(), verificationToken);
-//
-//        return AuthenticationResponse.builder()
-//                .message("User registered. Check your email for verification.")
-//                .build();
-//    }
-//
-//    public String verifyEmail(String token) {
-//        User user = userRepository.findByVerificationToken(token)
-//                .orElseThrow(() -> new IllegalArgumentException("Invalid verification token"));
-//
-//        user.setVerified(true);
-//        user.setVerificationToken(null); // Remove the token after verification
-//        userRepository.save(user);
-//
-//        return "Email verified successfully!";
-//    }
-//
-////    public AuthenticationResponse authenticate(AuthenticationRequest request) {
-////        // Find the user by email
-////        var user = userRepository.findByEmail(request.getEmail())
-////                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + request.getEmail()));
-////
-////        // Generate JWT token
-////        var token = jwtService.generateToken(user);
-////
-////        // Return the token and role in the response
-////        return AuthenticationResponse.builder()
-////                .token(token)
-////                .firstName(user.getFirstname())
-////                .departmentId(user.getDepartmentId())
-////                .role(user.getRole().name())  // Convert enum to string
-////                .build();
-////    }
-//
-//
-//    public AuthenticationResponse authenticate(AuthenticationRequest request) {
-//        // Search in the users collection
-//        Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
-//
-//        if (userOpt.isPresent()) {
-//            User user = userOpt.get();
-//            return generateAuthResponse(user);
-//        }
-//
-//        // Search in the teachers collection (if not found in users)
-//        Optional<Teacher> teacherOpt = teacherRepository.findByEmail(request.getEmail());
-//
-//        if (teacherOpt.isPresent()) {
-//            Teacher teacher = teacherOpt.get();
-//            return generateAuthResponse(teacher);
-//        }
-//
-//        throw new UsernameNotFoundException("User or Teacher not found with email: " + request.getEmail());
-//    }
-//
-//    // Helper method to generate the response
-//    private AuthenticationResponse generateAuthResponse(Object userOrTeacher) {
-//        String token;
-//        String firstName;
-//        String email;
-//        String lastName;
-//        String role;
-//        Set departmentId;
-//
-//        if (userOrTeacher instanceof User user) {
-//            token = jwtService.generateToken(user);
-//            firstName = user.getFirstname();
-//            lastName = user.getLastname();
-//            email = user.getEmail();
-//            role = user.getRole().name();
-//            departmentId = user.getDepartmentId();
-//        } else if (userOrTeacher instanceof Teacher teacher) {
-////            token = jwtService.generateToken(teacher);
-//            firstName = teacher.getFirstname();
-//            lastName = teacher.getLastname();
-//            email = teacher.getEmail();
-//            role = teacher.getRole().name();
-//            departmentId = teacher.getDepartmentId();
-//        } else {
-//            throw new IllegalArgumentException("Invalid user type");
-//        }
-//
-//        return AuthenticationResponse.builder()
-////                .token(token)
-//                .firstName(firstName)
-//                .lastName(lastName)
-//                .email(email)
-//                .role(role)
-//                .departmentId(departmentId)
-//                .build();
-//    }
-//
-//
-//
-//
-//
-//    public AuthenticationResponse registerStudent(RegisterRequest request, String studentId) {
-//        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-//        if (existingUser.isPresent()) {
-//            // User already exists, just make sure it's linked to the student
-//            User user = existingUser.get();
-//            user.setStudentId(studentId);
-//            userRepository.save(user);
-//
-//            return AuthenticationResponse.builder()
-//                    .message("User already exists and linked to student.")
-//                    .build();
-//        }
-//
-//        // Generate a verification token
-//        String verificationToken = UUID.randomUUID().toString();
-//
-//        // Create a new user with verification token
-//        User user = User.builder()
-//                .firstname(request.getFirstname())
-//                .lastname(request.getLastname())
-//                .email(request.getEmail())
-//                .password(request.getPassword()) // Assume password is already encoded in StudentService
-//                .role(Role.STUDENT) // Always STUDENT for students
-//                .studentId(studentId) // Set the studentId reference
-//                .verificationToken(verificationToken)
-//                .isVerified(true) // Set to true if you don't want email verification for students
-//                .departmentId(Set.of(request.getDepartmentId())) // Set department
-//                .build();
-//
-//        // Save the user
-//        userRepository.save(user);
-//
-//        // Only send verification email if needed
-//        if (!user.isVerified()) {
-//            emailService.sendVerificationEmail(user.getEmail(), verificationToken);
-//        }
-//
-//        return AuthenticationResponse.builder()
-//                .message("Student registered for authentication.")
-//                .build();
-//    }
-//
-//    // Modify the authenticate method to search in student collection as well
-//    public AuthenticationResponse authenticate(AuthenticationRequest request) {
-//        // Search in the users collection
-//        Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
-//
-//        if (userOpt.isPresent()) {
-//            User user = userOpt.get();
-//            return generateAuthResponse(user);
-//        }
-//
-//        // Search in the teachers collection
-//        Optional<Teacher> teacherOpt = teacherRepository.findByEmail(request.getEmail());
-//
-//        if (teacherOpt.isPresent()) {
-//            Teacher teacher = teacherOpt.get();
-//            return generateAuthResponse(teacher);
-//        }
-//
-//        // Search in the students collection
-//        Optional<Student> studentOpt = studentRepository.findByEmail(request.getEmail());
-//
-//        if (studentOpt.isPresent()) {
-//            Student student = studentOpt.get();
-//
-//            // Find associated user account
-//            Optional<User> studentUserOpt = userRepository.findByStudentId(student.getStudentId());
-//
-//            if (studentUserOpt.isPresent()) {
-//                return generateAuthResponse(studentUserOpt.get());
-//            } else {
-//                // Create user on-the-fly if it doesn't exist
-//                RegisterRequest registerRequest = RegisterRequest.builder()
-//                        .firstname(student.getName().split(" ")[0])
-//                        .lastname(student.getName().contains(" ") ?
-//                                student.getName().substring(student.getName().indexOf(" ") + 1) : "")
-//                        .email(student.getEmail())
-//                        .password(student.getPassword())
-//                        .role("STUDENT")
-//                        .build();
-//
-//                registerStudent(registerRequest, student.getStudentId());
-//
-//                // Now try to get the user again
-//                Optional<User> newUser = userRepository.findByStudentId(student.getStudentId());
-//                if (newUser.isPresent()) {
-//                    return generateAuthResponse(newUser.get());
-//                }
-//            }
-//        }
-//
-//        throw new UsernameNotFoundException("User, Teacher, or Student not found with email: " + request.getEmail());
-//    }
-//
-//    // ... existing methods with updated generateAuthResponse
-//    private AuthenticationResponse generateAuthResponse(Object userOrTeacher) {
-//        String token;
-//        String firstName;
-//        String email;
-//        String lastName;
-//        String role;
-//        Set departmentId;
-//        String studentId = null;
-//
-//        if (userOrTeacher instanceof User user) {
-//            token = jwtService.generateToken(user);
-//            firstName = user.getFirstname();
-//            lastName = user.getLastname();
-//            email = user.getEmail();
-//            role = user.getRole().name();
-//            departmentId = user.getDepartmentId();
-//            studentId = user.getStudentId(); // Add studentId if available
-//        } else if (userOrTeacher instanceof Teacher teacher) {
-//            token = jwtService.generateToken((UserDetails) teacher);
-//            firstName = teacher.getFirstname();
-//            lastName = teacher.getLastname();
-//            email = teacher.getEmail();
-//            role = teacher.getRole().name();
-//            departmentId = teacher.getDepartmentId();
-//        } else if (userOrTeacher instanceof Student student) {
-//            // This assumes Student implements UserDetails or you have a way to generate a token
-//            token = jwtService.generateToken(convertStudentToUserDetails(student));
-//            firstName = student.getName().split(" ")[0];
-//            lastName = student.getName().contains(" ") ?
-//                    student.getName().substring(student.getName().indexOf(" ") + 1) : "";
-//            email = student.getEmail();
-//            role = "STUDENT";
-//            departmentId = Set.of(student.getDepartmentId());
-//            studentId = student.getStudentId();
-//        } else {
-//            throw new IllegalArgumentException("Invalid user type");
-//        }
-//
-//        return AuthenticationResponse.builder()
-//                .token(token)
-//                .firstName(firstName)
-//                .lastName(lastName)
-//                .email(email)
-//                .role(role)
-//                .departmentId(departmentId)
-//                .studentId(studentId) // Include studentId in response if available
-//                .build();
-//    }
-//
-//    // Helper method to convert Student to UserDetails
-//    private UserDetails convertStudentToUserDetails(Student student) {
-//        // Implementation depends on your Student model
-//        // Here's a simple example using SimpleUserDetails
-//        return User.builder()
-//                .firstname(student.getName().split(" ")[0])
-//                .lastname(student.getName().contains(" ") ?
-//                        student.getName().substring(student.getName().indexOf(" ") + 1) : "")
-//                .email(student.getEmail())
-//                .password(student.getPassword())
-//                .role(Role.STUDENT)
-//                .build();
-//    }
-//}
 
 package com.example.resultmanagementsystem.services;
 
-import com.example.resultmanagementsystem.Dto.Repository.StudentRepository;
-import com.example.resultmanagementsystem.Dto.Repository.TeacherRepository;
 import com.example.resultmanagementsystem.Dto.Repository.UserRepository;
-import com.example.resultmanagementsystem.Dto.userdto.AuthenticationRequest;
-import com.example.resultmanagementsystem.Dto.userdto.AuthenticationResponse;
-import com.example.resultmanagementsystem.Dto.userdto.RegisterRequest;
+import com.example.resultmanagementsystem.Dto.userdto.*;
 import com.example.resultmanagementsystem.config.JWTService;
 import com.example.resultmanagementsystem.model.Role.Role;
-import com.example.resultmanagementsystem.model.Student;
-import com.example.resultmanagementsystem.model.Teacher;
 import com.example.resultmanagementsystem.model.User;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -344,216 +25,192 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTService jwtService;
-    private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
-    private final TeacherRepository teacherRepository;
-    private final StudentRepository studentRepository;
+    private final EmailService emailService;
+    private final OTPService otpService;
+    private final StudentService studentService; // ✅ Add this
+    private final TeacherService teacherService;
 
+    @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
-        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-        if (existingUser.isPresent()) {
-            throw new IllegalArgumentException("Email already exists: " + request.getEmail());
+        // Check if user already exists
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("User with this email already exists");
         }
 
-        // Generate a verification token
-        String verificationToken = UUID.randomUUID().toString();
+        // Generate registration OTP
+        String otp = otpService.generateOTP();
 
-        // Create a new user with verification token
-        User user = User.builder()
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
+        // Create user with OTP
+        var user = User.builder()
+                .firstname(request.getFirstName())
+                .lastname(request.getLastName())
+                .name(request.getFirstName() + " " + request.getLastName()) // Combined name field
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole() != null ? Role.valueOf(request.getRole()) : Role.STUDENT)
-                .verificationToken(verificationToken)
-                .isVerified(false) // Default to false
+                .role(Role.valueOf(request.getRole().toUpperCase()))
+                .emailVerified(false)
+                .isVerified(false) // Keep for compatibility
+                .departmentId(new HashSet<>()) // Initialize empty set
+                .registrationOtp(otp)
+                .registrationOtpExpiry(otpService.getOTPExpiry())
                 .build();
 
-        // Set department if provided
-        if (request.getDepartmentId() != null) {
-            user.setDepartmentId(Set.of(request.getDepartmentId()));
-        }
-
-        // Save the user
         userRepository.save(user);
 
-        // Send verification email
-        emailService.sendVerificationEmail(user.getEmail(), verificationToken);
-
-        return AuthenticationResponse.builder()
-                .message("User registered. Check your email for verification.")
-                .build();
-    }
-
-    public String verifyEmail(String token) {
-        User user = userRepository.findByVerificationToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid verification token"));
-
-        user.setVerified(true);
-        user.setVerificationToken(null); // Remove the token after verification
-        userRepository.save(user);
-
-        return "Email verified successfully!";
-    }
-
-    public AuthenticationResponse registerStudent(RegisterRequest request, String studentId) {
-        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-        if (existingUser.isPresent()) {
-            // User already exists, just make sure it's linked to the student
-            User user = existingUser.get();
-            user.setStudentId(studentId);
-            userRepository.save(user);
-
-            return AuthenticationResponse.builder()
-                    .message("User already exists and linked to student.")
-                    .build();
-        }
-
-        // Generate a verification token
-        String verificationToken = UUID.randomUUID().toString();
-
-        // Create a new user with verification token
-        User user = User.builder()
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
-                .email(request.getEmail())
-                .password("") // Encode the password
-                .role(Role.STUDENT) // Always STUDENT for students
-                .studentId(studentId) // Set the studentId reference
-                .verificationToken(verificationToken)
-                .isVerified(true) // Set to true if you don't want email verification for students
-                .build();
-
-        // Set department if provided
-        if (request.getDepartmentId() != null) {
-            user.setDepartmentId(Set.of(request.getDepartmentId()));
-        }
-
-        // Save the user
-        userRepository.save(user);
-
-        // Only send verification email if needed
-        if (!user.isVerified()) {
-            emailService.sendVerificationEmail(user.getEmail(), verificationToken);
+        // Send registration OTP email
+        try {
+            emailService.sendRegistrationOTP(user.getEmail(), otp, user.getFirstname());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send registration OTP email: " + e.getMessage());
         }
 
         return AuthenticationResponse.builder()
-                .message("Student registered for authentication.")
+                .message("Registration successful! Please check your email for OTP verification.")
+                .email(user.getEmail())
+                .requiresOtp(true)
                 .build();
     }
 
+    @Transactional
+    public OTPVerificationResponse verifyRegistrationOTP(OTPVerificationRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.isEmailVerified()) {
+            throw new IllegalArgumentException("Email already verified");
+        }
+
+        if (!otpService.isOTPValid(request.getOtp(), user.getRegistrationOtp(), user.getRegistrationOtpExpiry())) {
+            throw new IllegalArgumentException("Invalid or expired OTP");
+        }
+
+        // Mark email as verified and clear OTP
+        user.setEmailVerified(true);
+        user.setVerified(true); // Keep for compatibility
+        user.setRegistrationOtp(null);
+        user.setRegistrationOtpExpiry(null);
+        userRepository.save(user);
+
+        // Send welcome email
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getFirstname());
+        } catch (Exception e) {
+            // Log error but don't fail the verification
+            System.err.println("Failed to send welcome email: " + e.getMessage());
+        }
+
+        // Generate JWT token
+        String jwtToken = jwtService.generateToken(user);
+
+        return OTPVerificationResponse.builder()
+                .success(true)
+                .message("Email verified successfully! Welcome to Result Management System.")
+                .token(jwtToken)
+                .build();
+    }
+
+    @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        // Search in the users collection
-        Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+        // Authenticate user credentials
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
 
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            return generateAuthResponse(user);
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!user.isEmailVerified() && !user.isVerified()) {
+            throw new IllegalArgumentException("Please verify your email before logging in");
         }
 
-        // Search in the teachers collection
-        Optional<Teacher> teacherOpt = teacherRepository.findByEmail(request.getEmail());
+        // Generate and send login OTP
+        String otp = otpService.generateOTP();
+        user.setLoginOtp(otp);
+        user.setLoginOtpExpiry(otpService.getOTPExpiry());
+        user.setLoginOtpVerified(false);
+        userRepository.save(user);
 
-        if (teacherOpt.isPresent()) {
-            Teacher teacher = teacherOpt.get();
-            return generateAuthResponse(teacher);
-        }
-
-        // Search in the students collection
-        Optional<Student> studentOpt = studentRepository.findByEmail(request.getEmail());
-
-        if (studentOpt.isPresent()) {
-            Student student = studentOpt.get();
-
-            // Find associated user account
-            Optional<User> studentUserOpt = userRepository.findByStudentId(student.getStudentId());
-
-            if (studentUserOpt.isPresent()) {
-                return generateAuthResponse(studentUserOpt.get());
-            } else {
-                // Create user on-the-fly if it doesn't exist
-                RegisterRequest registerRequest = RegisterRequest.builder()
-                        .firstname(student.getName().split(" ")[0])
-                        .lastname(student.getName().contains(" ") ?
-                                student.getName().substring(student.getName().indexOf(" ") + 1) : "")
-                        .email(student.getEmail())
-                        .password(student.getPassword())
-                        .role("STUDENT")
-                        .departmentId(student.getDepartmentId())
-                        .build();
-
-                registerStudent(registerRequest, student.getStudentId());
-
-                // Now try to get the user again
-                Optional<User> newUser = userRepository.findByStudentId(student.getStudentId());
-                if (newUser.isPresent()) {
-                    return generateAuthResponse(newUser.get());
-                }
-            }
-        }
-
-        throw new UsernameNotFoundException("User, Teacher, or Student not found with email: " + request.getEmail());
-    }
-
-    private AuthenticationResponse generateAuthResponse(Object userOrTeacher) {
-        String token;
-        String firstName;
-        String email;
-        String lastName;
-        String role;
-        Set<?> departmentId;
-        String studentId = null;
-
-        if (userOrTeacher instanceof User user) {
-            token = jwtService.generateToken(user);
-            firstName = user.getFirstname();
-            lastName = user.getLastname();
-            email = user.getEmail();
-            role = user.getRole().name();
-            departmentId = user.getDepartmentId();
-            studentId = user.getStudentId(); // Add studentId if available
-        } else if (userOrTeacher instanceof Teacher teacher) {
-//            token = jwtService.generateToken(teacher);
-            firstName = teacher.getFirstname();
-            lastName = teacher.getLastname();
-            email = teacher.getEmail();
-            role = teacher.getRole().name();
-            departmentId = teacher.getDepartmentId();
-        } else if (userOrTeacher instanceof Student student) {
-            // This assumes Student implements UserDetails or you have a way to generate a token
-            token = jwtService.generateToken(convertStudentToUserDetails(student));
-            firstName = student.getName().split(" ")[0];
-            lastName = student.getName().contains(" ") ?
-                    student.getName().substring(student.getName().indexOf(" ") + 1) : "";
-            email = student.getEmail();
-            role = "STUDENT";
-            departmentId = Set.of(student.getDepartmentId());
-            studentId = student.getStudentId();
-        } else {
-            throw new IllegalArgumentException("Invalid user type");
+        try {
+            emailService.sendLoginOTP(user.getEmail(), otp, user.getFirstname());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send login OTP email: " + e.getMessage());
         }
 
         return AuthenticationResponse.builder()
-//                .token(token)
-                .firstName(firstName)
-                .lastName(lastName)
-                .email(email)
-                .role(role)
-                .departmentId((Set<String>) departmentId)
-                .studentId(studentId) // Include studentId in response if available
+                .message("Login credentials verified! Please check your email for OTP.")
+                .email(user.getEmail())
+                .requiresOtp(true)
                 .build();
     }
 
-    // Helper method to convert Student to UserDetails
-    private UserDetails convertStudentToUserDetails(Student student) {
-        // Implementation depends on your Student model
-        return User.builder()
-                .firstname(student.getName().split(" ")[0])
-                .lastname(student.getName().contains(" ") ?
-                        student.getName().substring(student.getName().indexOf(" ") + 1) : "")
-                .email(student.getEmail())
-                .password(student.getPassword())
-                .role(Role.STUDENT)
+    @Transactional
+    public OTPVerificationResponse verifyLoginOTP(OTPVerificationRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!otpService.isOTPValid(request.getOtp(), user.getLoginOtp(), user.getLoginOtpExpiry())) {
+            throw new IllegalArgumentException("Invalid or expired OTP");
+        }
+
+        // Mark login OTP as verified
+        user.setLoginOtpVerified(true);
+        user.setLoginOtp(null);
+        user.setLoginOtpExpiry(null);
+        userRepository.save(user);
+
+        // Generate JWT token
+        String jwtToken = jwtService.generateToken(user);
+
+        // ✅ Get additional user details
+        Object userDetails = null;
+        switch (user.getRole()) {
+            case STUDENT -> userDetails = studentService.getStudentIdByEmail(user.getEmail());
+            case TEACHER -> userDetails = teacherService.getTeacherByEmail(user.getEmail());
+            // You can add other roles here if needed
+        }
+
+        return OTPVerificationResponse.builder()
+                .success(true)
+                .message("Login successful!")
+                .token(jwtToken)
+                .userDetails(userDetails) // ✅ Include full student/teacher info
+                .build();
+    }
+
+
+    public AuthenticationResponse resendOTP(String email, String type) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String otp = otpService.generateOTP();
+        LocalDateTime expiry = otpService.getOTPExpiry();
+
+        if ("registration".equalsIgnoreCase(type)) {
+            if (user.isEmailVerified() || user.isVerified()) {
+                throw new IllegalArgumentException("Email already verified");
+            }
+            user.setRegistrationOtp(otp);
+            user.setRegistrationOtpExpiry(expiry);
+            emailService.sendRegistrationOTP(email, otp, user.getFirstname());
+        } else if ("login".equalsIgnoreCase(type)) {
+            user.setLoginOtp(otp);
+            user.setLoginOtpExpiry(expiry);
+            user.setLoginOtpVerified(false);
+            emailService.sendLoginOTP(email, otp, user.getFirstname());
+        } else {
+            throw new IllegalArgumentException("Invalid OTP type");
+        }
+
+        userRepository.save(user);
+
+        return AuthenticationResponse.builder()
+                .message("OTP resent successfully! Please check your email.")
+                .email(email)
+                .requiresOtp(true)
                 .build();
     }
 }

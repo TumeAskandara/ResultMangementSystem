@@ -65,15 +65,15 @@ public class StudentController {
 
         // Register the student for authentication
         RegisterRequest registerRequest = RegisterRequest.builder()
-                .firstname(student.getName().split(" ")[0])  // Assuming name is in "firstname lastname" format
-                .lastname(student.getName().contains(" ") ?
+                .firstName(student.getName().split(" ")[0])  // Assuming name is in "firstname lastname" format
+                .lastName(student.getName().contains(" ") ?
                         student.getName().substring(student.getName().indexOf(" ") + 1) : "")
                 .email(student.getEmail())
                 .role("STUDENT")  // Set role explicitly
                 .build();
 
         // Register the student with auth service
-        authenticationService.registerStudent(registerRequest, createdStudent.getStudentId());
+//        authenticationService.registerStudent(registerRequest, createdStudent.getStudentId());
 
         return new ResponseEntity<>(createdStudent, HttpStatus.CREATED);
     }

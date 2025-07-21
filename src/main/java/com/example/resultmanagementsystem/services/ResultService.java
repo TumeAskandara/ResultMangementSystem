@@ -4,7 +4,6 @@ import com.example.resultmanagementsystem.Dto.Repository.CourseRepository;
 import com.example.resultmanagementsystem.Dto.Repository.ResultRepository;
 import com.example.resultmanagementsystem.Dto.Repository.StudentRepository;
 import com.example.resultmanagementsystem.Dto.ResultDTO;
-import com.example.resultmanagementsystem.model.Course;
 import com.example.resultmanagementsystem.model.Result;
 import com.example.resultmanagementsystem.model.Student;
 import lombok.RequiredArgsConstructor;
@@ -112,14 +111,77 @@ public class ResultService {
         }
 
         String studentId = studentOpt.get().getStudentId();
-        List<Result> results = resultRepository.findByStudentIdAndSemesterAndYear(studentId, semester, year);
 
-        if (results.isEmpty()) {
+        // 1. Get semester results
+        List<Result> semesterResults = resultRepository.findByStudentIdAndSemesterAndYear(studentId, semester, year);
+        if (semesterResults.isEmpty()) {
             throw new RuntimeException("No results found for student with email " + email + " in semester " + semester);
         }
 
-        return formatResults(results);
+        // 2. Get all results for GPA
+        List<Result> allResults = resultRepository.findByStudentId(studentId);
+        double cumulativeGPA = calculateCumulativeGPA(allResults);
+
+        // 3. Format semester result (can keep using your helper)
+        List<Map<String, Object>> formattedResults = formatResultsList(semesterResults);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("results", formattedResults);
+        response.put("cumulativeGPA", cumulativeGPA);
+
+        return response;
     }
+
+
+    private List<Map<String, Object>> formatResultsList(List<Result> results) {
+        List<Map<String, Object>> formattedResults = new ArrayList<>();
+
+        for (Result result : results) {
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("status", result.getStatus());
+            resultMap.put("exams", result.getExams());
+            resultMap.put("ca", result.getCa());
+            resultMap.put("total", result.getTotal());
+            resultMap.put("grade", result.getGrade());
+            resultMap.put("evaluation", result.getEvaluation());
+            resultMap.put("weight", result.getWeight());
+            resultMap.put("juryDecision", result.getJuryDecision());
+            resultMap.put("gpa", result.getGpa());
+
+            courseRepository.findById(result.getCourseId()).ifPresentOrElse(course -> {
+                resultMap.put("courseTitle", course.getCourseTitle());
+                resultMap.put("courseMaster", course.getCourseMaster());
+                resultMap.put("credits", course.getCredits());
+                resultMap.put("code", course.getCode());
+            }, () -> {
+                resultMap.put("courseTitle", "Unknown");
+                resultMap.put("courseMaster", "Unknown");
+                resultMap.put("credits", 0);
+                resultMap.put("code", "N/A");
+            });
+
+            formattedResults.add(resultMap);
+        }
+
+        return formattedResults;
+    }
+
+    private double calculateCumulativeGPA(List<Result> results) {
+        if (results.isEmpty()) return 0.0;
+
+        double totalWeightedPoints = results.stream()
+                .mapToDouble(r -> r.getWeight() * r.getCredits())
+                .sum();
+
+        double totalCredits = results.stream()
+                .mapToDouble(Result::getCredits)
+                .sum();
+
+        return totalCredits == 0 ? 0.0 : totalWeightedPoints / totalCredits;
+    }
+
+
+
 
     public Map<String, Object> getResultsByStudentEmail(String email) {
         Optional<Student> studentOpt = studentRepository.findByEmail(email);

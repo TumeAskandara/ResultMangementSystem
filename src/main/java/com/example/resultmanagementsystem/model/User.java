@@ -1,6 +1,5 @@
 package com.example.resultmanagementsystem.model;
 
-
 import com.example.resultmanagementsystem.model.Role.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -30,15 +30,30 @@ public class User implements UserDetails {
     private String lastname;
     private String email;
     private Role role;
+    private String password;
+
+    // Original verification fields
     private String verificationToken;
     private boolean isVerified = false;
 
-    private String password;
-
-
+    // Student-specific fields
     private String studentId = UUID.randomUUID().toString();
     private String name;
-    private Set departmentId;
+    private Set<String> departmentId;
+
+    // Email verification fields with OTP
+    private boolean emailVerified = false;
+    private String emailVerificationToken;
+    private LocalDateTime emailVerificationTokenExpiry;
+
+    // OTP fields for login
+    private String loginOtp;
+    private LocalDateTime loginOtpExpiry;
+    private boolean loginOtpVerified = false;
+
+    // OTP fields for registration
+    private String registrationOtp;
+    private LocalDateTime registrationOtpExpiry;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -71,11 +86,9 @@ public class User implements UserDetails {
         return true;
     }
 
-
     @Override
-    public boolean isEnabled(){
-        return isVerified;
+    public boolean isEnabled() {
+        // Use emailVerified for OTP-based verification, fallback to isVerified for compatibility
+        return emailVerified || isVerified;
     }
-
 }
-

@@ -22,12 +22,13 @@ public class EmailService {
     private final StudentService studentService;
     private final TeacherService teacherService;
     private final UserRepository userRepository;
+
     @Value("${spring.mail.username}")
     private String fromEmail;
-
     @Value("${app.base-url}")
     private String baseUrl;
 
+    // Existing complaint-related methods
     public void sendNewComplaintNotification(Complaint complaint) {
         // Get teacher email based on course
         String teacherEmail = teacherService.getTeacherEmailByCourseId(complaint.getCourseId());
@@ -112,6 +113,7 @@ public class EmailService {
         complaint.setLastNotificationSent(LocalDateTime.now());
     }
 
+    // Existing notification methods
     public void sendVerificationEmail(String toEmail, String token) {
         String verificationLink = baseUrl + "/api/v1/auth/verify-email?token=" + token;
 
@@ -174,5 +176,65 @@ public class EmailService {
             log.error("Failed to send email to {} ({}): {}", toName, toEmail, subject, e);
             throw new RuntimeException("Failed to send email to " + toEmail, e);
         }
+    }
 
-    }}
+    // New OTP-related methods
+    public void sendRegistrationOTP(String toEmail, String otp, String firstName) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("Registration Verification - OTP");
+        message.setText(String.format(
+                "Dear %s,\n\n" +
+                        "Thank you for registering with our Result Management System.\n\n" +
+                        "Your verification OTP is: %s\n\n" +
+                        "This OTP will expire in 10 minutes.\n\n" +
+                        "If you didn't request this registration, please ignore this email.\n\n" +
+                        "Best regards,\n" +
+                        "Result Management System Team",
+                firstName, otp
+        ));
+
+        mailSender.send(message);
+        log.info("Registration OTP sent to {} ({})", firstName, toEmail);
+    }
+
+    public void sendLoginOTP(String toEmail, String otp, String firstName) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("Login Verification - OTP");
+        message.setText(String.format(
+                "Dear %s,\n\n" +
+                        "Someone is trying to login to your Result Management System account.\n\n" +
+                        "Your login OTP is: %s\n\n" +
+                        "This OTP will expire in 10 minutes.\n\n" +
+                        "If this wasn't you, please secure your account immediately.\n\n" +
+                        "Best regards,\n" +
+                        "Result Management System Team",
+                firstName, otp
+        ));
+
+        mailSender.send(message);
+        log.info("Login OTP sent to {} ({})", firstName, toEmail);
+    }
+
+    public void sendWelcomeEmail(String toEmail, String firstName) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("Welcome to Result Management System!");
+        message.setText(String.format(
+                "Dear %s,\n\n" +
+                        "Welcome to the Result Management System!\n\n" +
+                        "Your email has been successfully verified and your account is now active.\n\n" +
+                        "You can now login to access your account.\n\n" +
+                        "Best regards,\n" +
+                        "Result Management System Team",
+                firstName
+        ));
+
+        mailSender.send(message);
+        log.info("Welcome email sent to {} ({})", firstName, toEmail);
+    }
+}

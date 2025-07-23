@@ -19,10 +19,7 @@ services:
       - app-network
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: resultmgmt-app:latest
+    image: askan923/school-management-system:latest
     container_name: resultmgmt-app-prod
     restart: unless-stopped
     ports:
@@ -41,7 +38,6 @@ services:
       - app-network
     volumes:
       - ./logs:/app/logs
-
 
   nginx:
     image: nginx:alpine

@@ -23,7 +23,7 @@ services:
     container_name: resultmgmt-app-prod
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "15002:15002"
     depends_on:
       - mongodb
     environment:
@@ -38,6 +38,7 @@ services:
       - app-network
     volumes:
       - ./logs:/app/logs
+
 
   nginx:
     image: nginx:alpine

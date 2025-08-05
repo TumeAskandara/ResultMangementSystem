@@ -32,7 +32,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
       
@@ -95,7 +94,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Deploy to production
         uses: appleboy/ssh-action@v1.0.3
@@ -105,7 +104,6 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
             cd /root/ResultMangementSystem
-            docker-compose down
-            docker-compose -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.prod.yml up -d
+            docker-compose -f docker-compose.yml pull
+            docker-compose -f docker-compose.yml up -d
             docker image prune -f

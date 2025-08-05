@@ -31,16 +31,16 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/verify-registration-otp")
-    public ResponseEntity<?> verifyRegistrationOTP(@RequestBody OTPVerificationRequest request) {
-        try {
-            OTPVerificationResponse response = authenticationService.verifyRegistrationOTP(request);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
-        }
-    }
+//    @PostMapping("/verify-registration-otp")
+//    public ResponseEntity<?> verifyRegistrationOTP(@RequestBody OTPVerificationRequest request) {
+//        try {
+//            OTPVerificationResponse response = authenticationService.verifyRegistrationOTP(request);
+//            return ResponseEntity.ok(response);
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body(Map.of("error", e.getMessage()));
+//        }
+//    }
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request) {
@@ -56,29 +56,29 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/verify-login-otp")
-    public ResponseEntity<?> verifyLoginOTP(@RequestBody OTPVerificationRequest request) {
-        try {
-            OTPVerificationResponse response = authenticationService.verifyLoginOTP(request);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
-        }
-    }
+//    @PostMapping("/verify-login-otp")
+//    public ResponseEntity<?> verifyLoginOTP(@RequestBody OTPVerificationRequest request) {
+//        try {
+//            OTPVerificationResponse response = authenticationService.verifyLoginOTP(request);
+//            return ResponseEntity.ok(response);
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body(Map.of("error", e.getMessage()));
+//        }
+//    }
 
-    @PostMapping("/resend-otp")
-    public ResponseEntity<?> resendOTP(
-            @RequestParam String email,
-            @RequestParam String type) {
-        try {
-            AuthenticationResponse response = authenticationService.resendOTP(email, type);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
-        }
-    }
+//    @PostMapping("/resend-otp")
+//    public ResponseEntity<?> resendOTP(
+//            @RequestParam String email,
+//            @RequestParam String type) {
+//        try {
+//            AuthenticationResponse response = authenticationService.resendOTP(email, type);
+//            return ResponseEntity.ok(response);
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body(Map.of("error", e.getMessage()));
+//        }
+//    }
 
     // Legacy endpoint - kept for backward compatibility
     @GetMapping("/verify-email")

@@ -34,6 +34,7 @@ services:
       - SPRING_DATA_MONGODB_USERNAME=${MONGO_USERNAME}
       - SPRING_DATA_MONGODB_PASSWORD=${MONGO_PASSWORD}
       - SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE=admin
+      - APP_PORT=15002
     networks:
       - app-network
     volumes:

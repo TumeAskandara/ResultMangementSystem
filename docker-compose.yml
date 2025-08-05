@@ -1,3 +1,4 @@
+version: "3.8"
 
 services:
   mongodb:
@@ -16,10 +17,7 @@ services:
       - app-network
 
   app:
-    build:
-      context: .
-      args:
-        - APP_PORT=15002
+    image: askan923/school-management-system:latest  # use image built by GitHub Actions
     container_name: schoolmanagmentsystem-app-dev
     restart: unless-stopped
     ports:

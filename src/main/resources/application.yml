@@ -5,8 +5,10 @@ spring:
   data:
     mongodb:
       host: mongodb           # Name of the MongoDB container (as per docker-compose)
+#      host: localhost
       port: 27017
       database: school_management_system
+#      database: ResultMangementSystem
       username: admin
       password: password123
       authentication-database: admin

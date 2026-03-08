@@ -66,3 +66,12 @@ orange:
     secret: "fadsk4r"
   merchant:
     account: "dgksdf"
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:Vk6xfjubW/B3e7CzUzN+cogty93uU3k06cvs8TRVX3cCCrcCYSI1TVr4LVOvvvKw}
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+rate-limit:
+  requests-per-minute: 60
+  burst-capacity: 100
